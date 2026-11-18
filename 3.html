@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP ZAP: Модуль 3 — Безопасность сервера | Образовательный портал</title>
+    <style>
+        /* ---------- CSS ПЕРЕМЕННЫЕ (совместимы с модулями 1 и 2) ---------- */
+        :root {
+            --bg: #f6f8fc;
+            --surface: #ffffff;
+            --text: #1a2332;
+            --muted: #5a6b7e;
+            --accent: #0b5e7c;
+            --accent-light: #e1f0f7;
+            --border: #dce3eb;
+            --code-bg: #1e293b;
+            --code-text: #e2e8f0;
+            --danger: #b91c1c;
+            --warn: #b45309;
+            --ok: #15803d;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(11, 94, 124, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            display: flex;
+        }
+
+        /* ---------- БОКОВАЯ НАВИГАЦИЯ ---------- */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 28px 20px;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar .logo {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--accent);
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar .logo span { color: var(--text); }
+
+        .sidebar .subtitle {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 14px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .sidebar .nav-group {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #94a3b8;
+            margin: 16px 0 4px 12px;
+            font-weight: 700;
+        }
+
+        /* ---------- ОСНОВНОЙ КОНТЕНТ ---------- */
+        .main {
+            flex: 1;
+            padding: 40px 48px;
+            max-width: 1100px;
+            margin: 0 auto;
+            min-width: 0;
+        }
+
+        section {
+            margin-bottom: 56px;
+            scroll-margin-top: 24px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+            color: var(--accent);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-light);
+            color: var(--accent);
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            margin: 20px 0 8px;
+        }
+
+        p { margin-bottom: 12px; color: var(--text); }
+
+        .lead {
+            font-size: 1.1rem;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        /* ---------- КАРТОЧКИ ---------- */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            transition: 0.2s;
+        }
+
+        .card:hover { border-color: #b6d4e3; }
+
+        .card h4 {
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 16px;
+                gap: 4px;
+            }
+            .sidebar .subtitle { display: none; }
+            .sidebar .nav-group { display: none; }
+            .main { padding: 24px 18px; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        /* ---------- БЕЙДЖИ ---------- */
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 6px;
+        }
+
+        .badge-high { background: #fee2e2; color: var(--danger); }
+        .badge-med { background: #fef3c7; color: var(--warn); }
+        .badge-low { background: #dcfce7; color: var(--ok); }
+        .badge-info { background: var(--accent-light); color: var(--accent); }
+
+        /* ---------- КОД ---------- */
+        code {
+            background: #eef2f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-family: 'Consolas', 'Fira Code', monospace;
+            color: #1e293b;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 16px 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 12px 0;
+            font-family: 'Consolas', 'Fira Code', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        /* ---------- ТАБЫ ---------- */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 18px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ---------- АККОРДЕОН ---------- */
+        .accordion-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 14px 18px;
+            background: transparent;
+            border: none;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: inherit;
+            color: var(--text);
+            transition: 0.2s;
+        }
+
+        .accordion-header:hover { background: var(--accent-light); }
+
+        .accordion-header .arrow {
+            transition: transform 0.25s;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .accordion-item.open .accordion-header .arrow { transform: rotate(90deg); }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 18px;
+            background: #fafcfe;
+        }
+
+        .accordion-item.open .accordion-body {
+            max-height: 600px;
+            padding: 0 18px 16px;
+        }
+
+        .accordion-body p { font-size: 0.92rem; color: var(--muted); }
+
+        /* ---------- ПРЕДУПРЕЖДЕНИЯ ---------- */
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid var(--warn);
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+        }
+
+        .danger-box {
+            background: #fee2e2;
+            border-left: 4px solid var(--danger);
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+        }
+
+        .info-box {
+            background: var(--accent-light);
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-size: 0.92rem;
+        }
+
+        /* ---------- ССЫЛКИ ---------- */
+        a { color: var(--accent); text-decoration: none; font-weight: 500; }
+        a:hover { text-decoration: underline; }
+
+        .link-list { list-style: none; padding: 0; }
+        .link-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.92rem;
+        }
+        .link-list li:last-child { border-bottom: none; }
+
+        /* ---------- ЧЕК-ЛИСТ ---------- */
+        .checklist { list-style: none; padding: 0; }
+        .checklist li {
+            padding: 10px 0 10px 30px;
+            position: relative;
+            font-size: 0.92rem;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+        .checklist li::before {
+            content: "▢";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* ---------- ФУТЕР ---------- */
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        /* ---------- ПРОЧЕЕ ---------- */
+        .highlight { background: #fef9c3; padding: 1px 4px; border-radius: 3px; }
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .flex-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+
+        /* ---------- ПРОТОТИП ---------- */
+        .prototype-card {
+            background: linear-gradient(135deg, #e1f0f7 0%, #ffffff 100%);
+            border: 2px dashed var(--accent);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== БОКОВАЯ НАВИГАЦИЯ ==================== -->
+    <aside class="sidebar">
+        <div class="logo">ZAP<span>Модуль 3</span></div>
+        <div class="subtitle">Безопасность сервера · Полный цикл</div>
+
+        <div class="nav-group">Разведка и сканирование</div>
+        <a href="#nmap" class="active">Nmap: порты и сервисы</a>
+        <a href="#lynis">Lynis: аудит ОС</a>
+        <a href="#openvas">OpenVAS: сканер уязвимостей</a>
+        <a href="#nuclei">Nuclei: шаблоны и CI/CD</a>
+
+        <div class="nav-group">Контейнеры и управление</div>
+        <a href="#trivy">Trivy: образы Docker</a>
+        <a href="#defectdojo">DefectDojo: управление находками</a>
+
+        <div class="nav-group">Методология</div>
+        <a href="#wstg">OWASP WSTG и чек-лист</a>
+        <a href="#workflow">Полный цикл аудита</a>
+
+        <div class="nav-group">Кейсы и продолжение</div>
+        <a href="#history-3">Исторические кейсы</a>
+        <a href="#prototype">Прототип модуля 4</a>
+        <a href="#links-3">Полезные ссылки</a>
+    </aside>
+
+    <!-- ==================== ОСНОВНОЙ КОНТЕНТ ==================== -->
+    <main class="main">
+
+        <!-- ===== ВВЕДЕНИЕ ===== -->
+        <section id="intro-3">
+            <h1>OWASP ZAP: Модуль 3 — Исследование безопасности сервера</h1>
+            <p class="lead">
+                Веб-приложение — это лишь вершина айсберга. Под ним — операционная система, сетевые сервисы, веб-сервер (Nginx, Apache), база данных и контейнеры. Уязвимость на любом из этих уровней может свести на нет всю защиту приложения. В этом модуле вы научитесь исследовать сервер целиком: от открытых портов до конфигурации ядра и образов Docker.
+            </p>
+            <div class="info-box">
+                <strong>Что нового:</strong> Nmap для карты сети, Lynis для аудита ОС, OpenVAS для поиска CVE, Nuclei для шаблонных проверок, Trivy для контейнеров, DefectDojo для управления находками и OWASP WSTG как методологическая основа.
+            </div>
+            <div class="warning">
+                <strong>Этика:</strong> все описанные техники применяйте только к собственным серверам или системам, на которые у вас есть письменное разрешение. Несанкционированное сканирование является нарушением закона.
+            </div>
+        </section>
+
+        <!-- ===== NMAP ===== -->
+        <section id="nmap">
+            <h2>Nmap: карта сети и открытых портов</h2>
+            <p>Nmap (Network Mapper) — фундамент любого аудита. Он показывает, какие хосты живы, какие порты открыты, какие сервисы и версии на них работают, и какая ОС установлена[reference:0].</p>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tab-nmap-types">Типы сканирования</button>
+                <button class="tab-btn" data-tab="tab-nmap-nse">NSE-скрипты</button>
+            </div>
+
+            <div class="tab-panel active" id="tab-nmap-types">
+                <div class="card">
+                    <h4>🔍 SYN-сканирование (<code>-sS</code>)</h4>
+                    <p>По умолчанию, быстрое и относительно скрытное. Не завершает TCP-рукопожатие, поэтому менее заметно для логов. Требует root.</p>
+                    <pre><code>sudo nmap -sS 192.168.1.10</code></pre>
+                </div>
+                <div class="card">
+                    <h4>🔌 UDP-сканирование (<code>-sU</code>)</h4>
+                    <p>Находит сервисы на UDP: DNS (53), SNMP (161), NTP (123). Медленнее TCP, но без него карта неполная.</p>
+                    <pre><code>sudo nmap -sU --top-ports 200 192.168.1.10</code></pre>
+                </div>
+                <div class="card">
+                    <h4>⚡ Агрессивное сканирование (<code>-A</code>)</h4>
+                    <p>Один проход: определение ОС, версий сервисов, выполнение NSE-скриптов по умолчанию и трассировка. Максимум информации, но заметно.</p>
+                    <pre><code>sudo nmap -A 192.168.1.10</code></pre>
+                </div>
+                <div class="card">
+                    <h4>📋 Полное сканирование портов (<code>-p-</code>)</h4>
+                    <p>Проверяет все 65 535 портов, а не только топ-1000. Обязательно для тщательного аудита.</p>
+                    <pre><code>sudo nmap -sS -p- 192.168.1.10</code></pre>
+                </div>
+            </div>
+
+            <div class="tab-panel" id="tab-nmap-nse">
+                <div class="card">
+                    <h4>Nmap Scripting Engine (NSE)</h4>
+                    <p>Более 600 скриптов для проверки уязвимостей, перечисления сервисов и аутентификации[reference:1]. Категории: <code>auth</code>, <code>brute</code>, <code>vuln</code>, <code>safe</code>, <code>exploit</code> и др.</p>
+                    <pre><code># Проверка на EternalBlue (MS17-010)
+nmap -p 445 --script smb-vuln-ms17-010 192.168.1.10
+
+# Все SMB-уязвимости
+nmap -p 445 --script "smb-vuln-*" 192.168.1.10</code></pre>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Совет:</strong> сохраняйте результаты в XML (<code>-oX</code>) — этот формат затем можно импортировать в OpenVAS или другие инструменты[reference:2].
+            </div>
+        </section>
+
+        <!-- ===== LYNIS ===== -->
+        <section id="lynis">
+            <h2>Lynis: аудит конфигурации операционной системы</h2>
+            <p>Lynis — это инструмент аудита безопасности для Linux, macOS и Unix-систем. Он проверяет конфигурацию ядра, права файлов, SSH, firewall, установленные пакеты и многое другое, а в конце выдаёт <strong>индекс защищённости (Hardening Index) от 0 до 100</strong>[reference:3].</p>
+
+            <div class="flex-row">
+                <span class="step-num">1</span>
+                <div><strong>Установите Lynis</strong> из репозитория CISOFY или пакетного менеджера вашего дистрибутива[reference:4].</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">2</span>
+                <div><strong>Запустите аудит:</strong> <code>sudo lynis audit system</code>. Аудит <strong>только для чтения</strong> и не вносит изменений в систему — его безопасно запускать в любое время[reference:5].</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">3</span>
+                <div><strong>Разберите вывод:</strong> <code>[OK]</code> — проверка пройдена; <code>[WARNING]</code> — потенциальная проблема; <code>[SUGGESTION]</code> — рекомендация по улучшению[reference:6].</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">4</span>
+                <div><strong>Изучите отчёты:</strong> подробный лог — <code>/var/log/lynis.log</code>, сводка — <code>/var/log/lynis-report.dat</code>[reference:7].</div>
+            </div>
+
+            <div class="card">
+                <h4>Что проверяет Lynis</h4>
+                <p>Инструменты и команды системы, загрузку и сервисы, конфигурацию ядра, целостность файловой системы, пользователей и аутентификацию, права файлов, SSH, сеть, firewall, пакеты ПО, логирование и аудит[reference:8].</p>
+            </div>
+        </section>
+
+        <!-- ===== OPENVAS ===== -->
+        <section id="openvas">
+            <h2>OpenVAS (Greenbone): сканер уязвимостей с базой CVE</h2>
+            <p>OpenVAS — это полноценный сканер уязвимостей с открытым исходным кодом, который проверяет серверы на наличие известных CVE, слабых конфигураций и отсутствующих патчей.</p>
+
+            <div class="card">
+                <h4>🐳 Развёртывание через Docker (рекомендуется)</h4>
+                <p>Greenbone Community Edition проще всего запустить через Docker Compose[reference:9][reference:10]:</p>
+                <pre><code>mkdir -p ~/greenbone-community-container
+cd ~/greenbone-community-container
+curl -f -O -L https://greenbone.github.io/docs/latest/_static/docker-compose.yml
+docker compose pull
+docker compose up -d</code></pre>
+                <p>Веб-интерфейс доступен по HTTPS. Учётные данные по умолчанию: <code>admin / admin</code>[reference:11].</p>
+            </div>
+
+            <div class="card">
+                <h4>📋 Рабочий процесс в веб-интерфейсе (GSA)</h4>
+                <p><strong>1. Configuration → Credentials</strong> — опционально добавьте SSH/SMB-учётные данные для аутентифицированного сканирования (даёт более глубокий результат).</p>
+                <p><strong>2. Configuration → Targets</strong> — создайте цель: хост или подсеть, список портов.</p>
+                <p><strong>3. Configuration → Scan Configs</strong> — выберите политику сканирования (например, «Full and fast» или «Full and very deep»).</p>
+                <p><strong>4. Запустите сканирование</strong> и дождитесь отчёта с CVE и оценками риска[reference:12].</p>
+            </div>
+
+            <div class="warning">
+                <strong>Требования:</strong> для комфортной работы OpenVAS нужно минимум 2 CPU и 4 ГБ RAM (рекомендуется 4 CPU / 8 ГБ)[reference:13].
+            </div>
+        </section>
+
+        <!-- ===== NUCLEI ===== -->
+        <section id="nuclei">
+            <h2>Nuclei: быстрые шаблонные проверки и CI/CD</h2>
+            <p>Nuclei — современный высокопроизводительный сканер уязвимостей, основанный на простых YAML-шаблонах. Каждый шаблон описывает конкретную проверку (CVE, мисконфигурация, экспозиция сервиса) и может быть легко расширен[reference:14].</p>
+
+            <div class="card">
+                <h4>Установка и базовый запуск</h4>
+                <pre><code># Установка (требуется Go 1.23+)
+go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+# Сканирование по всем шаблонам
+nuclei -target https://example.com
+
+# Только критичные и высокие
+nuclei -target https://example.com -severity critical,high</code></pre>
+            </div>
+            <div class="card">
+                <h4>Интеграция в CI/CD</h4>
+                <p>Nuclei легко встраивается в пайплайны GitHub Actions, GitLab CI или Jenkins одной командой. Это позволяет проверять безопасность при каждом деплое[reference:15][reference:16].</p>
+                <pre><code>nuclei -t ./nuclei-templates/ -target $TARGET_URL -severity critical,high</code></pre>
+            </div>
+
+            <div class="info-box">
+                <strong>Сила Nuclei:</strong> сообщество поддерживает тысячи шаблонов, а вы можете писать собственные YAML-файлы под специфику вашего приложения или инфраструктуры.
+            </div>
+        </section>
+
+        <!-- ===== TRIVY ===== -->
+        <section id="trivy">
+            <h2>Trivy: безопасность контейнеров Docker</h2>
+            <p>Если вы используете Docker, уязвимость в базовом образе или зависимости может попасть в production вместе с вашим кодом. Trivy — самый популярный open-source сканер контейнеров: он находит CVE в пакетах ОС, зависимостях, а также секреты и мисконфигурации[reference:17].</p>
+
+            <div class="card">
+                <h4>Базовое сканирование образа</h4>
+                <pre><code># Установка (macOS)
+brew install aquasecurity/trivy/trivy
+
+# Сканирование образа
+trivy image nginx:1.25</code></pre>
+                <p>Trivy автоматически загружает базу уязвимостей из NVD, GitHub Security Advisories и дистрибутивных фидов при первом запуске[reference:18].</p>
+            </div>
+            <div class="card">
+                <h4>Фильтрация и гейтинг сборки</h4>
+                <pre><code># Только HIGH и CRITICAL
+trivy image --severity HIGH,CRITICAL myapp:latest
+
+# Падать со сборочным кодом 1, если есть CRITICAL
+trivy image --exit-code 1 --severity CRITICAL myapp:latest</code></pre>
+                <p>Это позволяет встроить проверку в CI/CD и не пропускать в registry образы с критическими уязвимостями[reference:19].</p>
+            </div>
+            <div class="card">
+                <h4>Сканирование файловой системы и IaC</h4>
+                <p>Trivy также проверяет файловые системы на уязвимые зависимости и Terraform/Kubernetes-манифесты на мисконфигурации.</p>
+                <pre><code>trivy fs --scanners vuln,secret .
+trivy config ./terraform</code></pre>
+            </div>
+        </section>
+
+        <!-- ===== DEFECTDOJO ===== -->
+        <section id="defectdojo">
+            <h2>DefectDojo: управление находками и жизненный цикл</h2>
+            <p>После сканирования ZAP, OpenVAS, Nuclei и Trivy у вас на руках десятки отчётов. Без централизованной системы невозможно понять, что уже исправлено, что новое, а что принято как риск. DefectDojo — платформа управления уязвимостями, которая превращает разрозненные отчёты в единый список задач.</p>
+
+            <div class="card">
+                <h4>Интеграция с ZAP</h4>
+                <p>DefectDojo импортирует XML-отчёты ZAP (baseline, full scan, API scan). Каждое оповещение ZAP становится <strong>Finding</strong> на соответствующем Asset, со всеми затронутыми URL как endpoints и сохранёнными запросами/ответами[reference:20].</p>
+                <pre><code># Генерация XML-отчёта ZAP
+docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable \
+  zap-baseline.py -t https://staging.example.com -x zap-report.xml</code></pre>
+            </div>
+            <div class="card">
+                <h4>Что даёт DefectDojo</h4>
+                <p><strong>Дедупликация</strong> по заголовку, CWE и серьёзности — повторное сканирование не создаёт дубликатов.</p>
+                <p><strong>Жизненный цикл:</strong> при повторном импорте находки, которые больше не воспроизводятся, автоматически закрываются, а вернувшиеся — реактивируются[reference:21].</p>
+                <p><strong>SLA и владельцы:</strong> уровни риска ZAP маппятся на серьёзность DefectDojo, и каждая находка получает ответственного, дедлайн и тикет в Jira[reference:22].</p>
+            </div>
+
+            <div class="info-box">
+                <strong>Совет:</strong> DefectDojo поддерживает не только ZAP, но и OpenVAS, Nuclei, Trivy, Burp, Acunetix и многие другие форматы — это единая точка входа для всех сканеров.
+            </div>
+        </section>
+
+        <!-- ===== WSTG ===== -->
+        <section id="wstg">
+            <h2>OWASP WSTG: методология тестирования веб-сервера</h2>
+            <p>OWASP Web Security Testing Guide (WSTG) — это флагманский проект OWASP, описывающий полный процесс тестирования безопасности веб-приложений и инфраструктуры. Раздел <strong>WSTG-CONF-01 (Network Infrastructure Configuration)</strong> напрямую посвящён веб-серверам.</p>
+
+            <div class="card">
+                <h4>Что проверять на уровне инфраструктуры (WSTG-CONF-01)</h4>
+                <p>WSTG предписывает идентифицировать каждый элемент инфраструктуры (веб-сервер, сервер приложений, БД, балансировщик, CDN, контейнеры) и проверить его на:</p>
+                <ul style="margin: 8px 0 8px 20px; color: var(--muted); font-size: 0.92rem;">
+                    <li>Известные уязвимости серверного ПО.</li>
+                    <li>Дефолтные учётные данные и настройки.</li>
+                    <li>Административные интерфейсы (доступность извне).</li>
+                    <li>Список разрешённых портов (контроль изменений).</li>
+                    <li>Изоляцию сети для облачных и контейнерных сред[reference:23].</li>
+                </ul>
+            </div>
+
+            <h3>Чек-лист аудита веб-сервера</h3>
+            <ul class="checklist">
+                <li>Проверить версию веб-сервера и отсутствие известных CVE (Nmap NSE, OpenVAS, Nuclei).</li>
+                <li>Убедиться, что дефолтные страницы, примеры и тестовые приложения удалены.</li>
+                <li>Проверить, что debug-режим и подробные сообщения об ошибках отключены.</li>
+                <li>Убедиться, что листинг директорий запрещён.</li>
+                <li>Проверить заголовки безопасности: CSP, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy.</li>
+                <li>Проверить TLS: версии протокола, шифры, срок действия сертификата (SSL Labs, testssl.sh).</li>
+                <li>Убедиться, что административные панели (/admin, /manager) недоступны извне или защищены.</li>
+                <li>Проверить, что сервер работает с минимальными привилегиями (не root).</li>
+                <li>Проверить логирование и мониторинг: ошибки, попытки доступа к запрещённым путям.</li>
+                <li>Для контейнеров: просканировать образы Trivy и убедиться, что нет CRITICAL CVE в базовом образе.</li>
+            </ul>
+        </section>
+
+        <!-- ===== ПОЛНЫЙ ЦИКЛ ===== -->
+        <section id="workflow">
+            <h2>Полный цикл аудита сервера: от разведки до отчёта</h2>
+            <p>Соберём всё вместе в воспроизводимый процесс. Этот workflow можно адаптировать под размер инфраструктуры и уровень критичности.</p>
+
+            <div class="flex-row">
+                <span class="step-num">1</span>
+                <div><strong>Инвентаризация.</strong> Nmap: обнаружение хостов, открытых портов и сервисов. Сохраните результат в XML.</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">2</span>
+                <div><strong>Аудит ОС.</strong> Lynis: запустите <code>sudo lynis audit system</code> на каждом сервере. Зафиксируйте Hardening Index и все WARNING.</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">3</span>
+                <div><strong>Сканирование уязвимостей.</strong> OpenVAS: создайте цель из результатов Nmap и запустите политику «Full and fast». Nuclei: дополните шаблонными проверками специфичных CVE и мисконфигураций.</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">4</span>
+                <div><strong>Веб-уровень.</strong> ZAP: baseline-скан для быстрой проверки, full scan для глубокого анализа. Не забудьте про аутентификацию, если приложение закрыто.</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">5</span>
+                <div><strong>Контейнеры.</strong> Trivy: просканируйте все используемые образы и файловые системы. Настройте <code>--exit-code 1</code> для CRITICAL в CI.</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">6</span>
+                <div><strong>Централизация.</strong> Импортируйте все отчёты в DefectDojo. Настройте дедупликацию, владельцев и SLA.</div>
+            </div>
+            <div class="flex-row">
+                <span class="step-num">7</span>
+                <div><strong>Исправление и повтор.</strong> Разработчики закрывают находки. Повторный импорт в DefectDojo автоматически закрывает исправленное и реактивирует регрессии.</div>
+            </div>
+
+            <div class="info-box">
+                <strong>Ключевая идея:</strong> безопасность сервера — это не разовое сканирование, а непрерывный цикл. Автоматизируйте шаги 1–6 в CI/CD, чтобы новые уязвимости обнаруживались до того, как попадут в production.
+            </div>
+        </section>
+
+        <!-- ===== ИСТОРИЯ 3 ===== -->
+        <section id="history-3">
+            <h2>Исторические кейсы: почему уровень сервера важен</h2>
+
+            <div class="accordion-item">
+                <button class="accordion-header">
+                    <span>2017: Apache Struts на сервере Equifax</span>
+                    <span class="arrow">▶</span>
+                </button>
+                <div class="accordion-body">
+                    <p>Equifax не обновила Apache Struts, хотя патч был доступен. Уязвимость на уровне сервера приложений (CVE-2017-5638) позволила злоумышленникам получить доступ к данным 147 миллионов человек. Урок: сканирование серверного ПО и управление патчами — не опция, а необходимость.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header">
+                    <span>2021: Log4Shell в серверных приложениях</span>
+                    <span class="arrow">▶</span>
+                </button>
+                <div class="accordion-body">
+                    <p>Уязвимость в библиотеке Log4j, используемой на миллионах серверов, позволяла выполнить произвольный код. Многие организации не знали, что Log4j используется в их серверных компонентах. Урок: инвентаризация зависимостей и сканирование (Trivy, Nuclei) критически важны.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header">
+                    <span>2023: MOVEit Transfer и SQL-инъекция на уровне сервера</span>
+                    <span class="arrow">▶</span>
+                </button>
+                <div class="accordion-body">
+                    <p>SQL-инъекция в MOVEit Transfer (серверное ПО для передачи файлов) привела к компрометации тысяч организаций. Урок: даже «внутренние» серверные приложения нуждаются в регулярном сканировании и патчинге.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== ПРОТОТИП ===== -->
+        <section id="prototype">
+            <h2>Прототип для будущих продолжений</h2>
+            <p>Этот модуль можно расширять в нескольких направлениях. Ниже — заготовки тем для следующих занятий.</p>
+
+            <div class="prototype-card">
+                <h4>🔮 Модуль 4 (возможные темы)</h4>
+                <ul style="margin: 8px 0 8px 20px; color: var(--muted); font-size: 0.92rem;">
+                    <li><strong>Активное тестирование API:</strong> Postman + ZAP API Scan, проверка авторизации на уровне объектов (BOLA).</li>
+                    <li><strong>Расширенный Nmap:</strong> firewall evasion, timing-атаки, кастомные NSE-скрипты.</li>
+                    <li><strong>SIEM и мониторинг:</strong> интеграция логов сервера в ELK/Grafana, алерты на подозрительную активность.</li>
+                    <li><strong>IaC-безопасность:</strong> Checkov, tfsec, сканирование Kubernetes-манифестов.</li>
+                    <li><strong>Постэксплуатация (в легальной лаборатории):</strong> повышение привилегий, pivot, сбор доказательств.</li>
+                    <li><strong>Отчётность и коммуникация:</strong> как писать отчёты для разработчиков и менеджмента, приоритизация рисков.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ===== ССЫЛКИ 3 ===== -->
+        <section id="links-3">
+            <h2>Полезные ссылки</h2>
+            <ul class="link-list">
+                <li><a href="https://nmap.org/book/" target="_blank" rel="noopener">Nmap Network Scanning (официальная книга)</a> — полное руководство.</li>
+                <li><a href="https://cisofy.com/lynis/" target="_blank" rel="noopener">Lynis — официальный сайт</a>.</li>
+                <li><a href="https://greenbone.github.io/docs/latest/" target="_blank" rel="noopener">Greenbone Community Edition — документация</a>.</li>
+                <li><a href="https://docs.projectdiscovery.io/tools/nuclei/running" target="_blank" rel="noopener">Nuclei — документация</a>.</li>
+                <li><a href="https://aquasecurity.github.io/trivy/" target="_blank" rel="noopener">Trivy — официальная документация</a>.</li>
+                <li><a href="https://docs.defectdojo.com/" target="_blank" rel="noopener">DefectDojo — документация</a>.</li>
+                <li><a href="https://wstg.owasp.org/" target="_blank" rel="noopener">OWASP WSTG</a> — методология тестирования.</li>
+                <li><a href="https://owasp.org/www-project-web-security-testing-guide/" target="_blank" rel="noopener">OWASP WSTG на GitHub</a>.</li>
+            </ul>
+        </section>
+
+        <!-- ===== ФУТЕР ===== -->
+        <div class="footer">
+            Образовательный портал по этичному хакингу · Модуль 3: Безопасность сервера · Материалы предназначены только для легального обучения на собственных или специально предназначенных системах.
+        </div>
+
+    </main>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // ---------- ТАБЫ ----------
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                const parent = btn.closest('section');
+
+                parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // ---------- АККОРДЕОН ----------
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                item.classList.toggle('open');
+            });
+        });
+
+        // ---------- ПОДСВЕТКА АКТИВНОЙ ССЫЛКИ ----------
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.sidebar a');
+
+        function highlightNav() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', highlightNav);
+        window.addEventListener('load', highlightNav);
+
+        // ---------- ПЛАВНЫЙ СКРОЛЛ ----------
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                        history.pushState(null, null, href);
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

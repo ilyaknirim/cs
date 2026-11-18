@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 1 — Основы ZAP | ZAP Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand">
+    <span class="brand-mark">Z</span>
+    ZAP<span>Portal</span>
+  </a>
+  <nav class="topnav">
+    <a href="index.html">Главная</a>
+    <a href="module-1.html" class="active">Модуль 1</a>
+    <a href="module-2.html">Модуль 2</a>
+    <a href="module-3.html">Модуль 3</a>
+  </nav>
+  <div class="theme-switcher">
+    <button class="theme-btn" title="Сменить тему">🎨</button>
+    <div class="theme-menu"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Модуль 1</div>
+    <a href="#intro" class="active">Введение</a>
+    <a href="#install">Установка</a>
+    <a href="#proxy">Настройка прокси</a>
+    <a href="#intercept">Перехват</a>
+    <a href="#scan">Автосканирование</a>
+    <a href="#vulns">Уязвимости</a>
+    <a href="#targets">Полигоны</a>
+    <a href="#history">История</a>
+    <a href="#legal">Этика</a>
+    <a href="#practice">🎯 Практика</a>
+    <a href="#links">Ссылки</a>
+  </aside>
+
+  <main class="main" data-module-id="m1">
+
+    <h1>Модуль 1 — Основы OWASP ZAP</h1>
+    <p class="lead">От установки до первых находок: перехват трафика, SQL-инъекции, XSS и CSRF на легальных полигонах.</p>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Прогресс модуля</span>
+        <span class="module-progress-label">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill module-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- ===== INTRO ===== -->
+    <section id="intro">
+      <h2>Введение</h2>
+      <p>ZAP — перехватывающий прокси, который даёт полный контроль над HTTP-трафиком между браузером и сервером. Вы видите каждый запрос, можете изменить его на лету и понять, как именно работают уязвимости — на практике, а не в теории.</p>
+      <div class="alert alert-info">
+        <strong>Что освоите:</strong> настройку ZAP как локального прокси, ручной перехват, автоматическое сканирование, поиск SQLi/XSS/CSRF на учебных полигонах.
+      </div>
+      <div class="card">
+        <h4>📌 Факт</h4>
+        <p>Первый релиз ZAP вышел в сентябре 2010 года. В 2015 и 2016 годах читатели ToolsWatch признавали его «Top Security Tool».</p>
+      </div>
+    </section>
+
+    <!-- ===== INSTALL ===== -->
+    <section id="install">
+      <h2>Установка</h2>
+      <p>ZAP — Java-приложение. Современные версии требуют Java 17+.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Windows</h4>
+          <pre><code>winget install --id=ZAP.ZAP -e</code></pre>
+        </div>
+        <div class="card">
+          <h4>macOS</h4>
+          <pre><code>brew install --cask zap</code></pre>
+        </div>
+      </div>
+      <div class="alert alert-warn">
+        При первом запуске ZAP предложит сохранить сессию — для обучения выберите «No».
+      </div>
+    </section>
+
+    <!-- ===== PROXY ===== -->
+    <section id="proxy">
+      <h2>Настройка прокси</h2>
+      <p>По умолчанию ZAP слушает <code>localhost:8080</code> (<code>Tools → Options → Network → Local Servers/Proxies</code>).</p>
+      <div class="flex-row"><span class="step-num">1</span><div><strong>Настройте браузер.</strong> Firefox: <code>Настройки → Network Settings → Manual proxy</code>. HTTP Proxy <code>127.0.0.1</code>, порт <code>8080</code>. Галочка «Use for all protocols».</div></div>
+      <div class="flex-row"><span class="step-num">2</span><div><strong>Доверьте сертификат.</strong> <code>Tools → Options → Network → Server Certificates</code> — сохраните и импортируйте в браузер. Без этого HTTPS не откроется.</div></div>
+      <div class="flex-row"><span class="step-num">3</span><div><strong>Проверьте.</strong> Откройте сайт — записи должны появиться на вкладке «History».</div></div>
+    </section>
+
+    <!-- ===== INTERCEPT ===== -->
+    <section id="intercept">
+      <h2>Перехват запросов</h2>
+      <p>Кнопка <strong>«Intercept»</strong> (<code>Ctrl+B</code>) останавливает запросы до отправки. Меняйте параметры, заголовки, метод.</p>
+      <div class="alert alert-danger">
+        <strong>Никогда</strong> не перехватывайте и не модифицируйте запросы к чужим системам без письменного разрешения.
+      </div>
+      <div class="card">
+        <h4>Пример: SQLi через перехват</h4>
+        <p>В поле логина вместо <code>admin</code> введите <code>' OR '1'='1</code>. Отправьте запрос. Если сервер пустил без пароля — вы нашли SQL-инъекцию (в учебных целях).</p>
+      </div>
+    </section>
+
+    <!-- ===== SCAN ===== -->
+    <section id="scan">
+      <h2>Автоматическое сканирование</h2>
+      <div class="card">
+        <h4>🕷️ Spider</h4>
+        <p>Обход ссылок. Правый клик по URL → <code>Attack → Spider…</code>. Укажите пользователя, если сайт за логином.</p>
+      </div>
+      <div class="card">
+        <h4>⚡ Active Scan</h4>
+        <p><code>Attack → Active Scan…</code> — отправляет payload'ы для поиска SQLi, XSS, path traversal. Результаты — на вкладке «Alerts».</p>
+      </div>
+    </section>
+
+    <!-- ===== VULNS ===== -->
+    <section id="vulns">
+      <h2>Три классические уязвимости</h2>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-sqli">SQLi</button>
+        <button class="tab-btn" data-tab="tab-xss">XSS</button>
+        <button class="tab-btn" data-tab="tab-csrf">CSRF</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-sqli">
+        <div class="card">
+          <span class="badge badge-high">Высокий риск</span>
+          <h4>SQL-инъекция</h4>
+          <p>Ввод пользователя попадает в SQL-запрос без разделения кода и данных. Пример: <code>' OR '1'='1</code> обходит аутентификацию.</p>
+          <p><strong>Защита:</strong> параметризованные запросы (prepared statements).</p>
+          <p><strong>История:</strong> в 2007–2009 гг. Альберт Гонсалес использовал SQLi для кражи 130+ млн карт. Приговор — 20 лет тюрьмы, Heartland выплатила ~140 млн долларов.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-xss">
+        <div class="card">
+          <span class="badge badge-med">Средний/высокий риск</span>
+          <h4>XSS</h4>
+          <p>Ввод возвращается в HTML без экранирования. Пример: <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code>.</p>
+          <p><strong>Защита:</strong> HTML-encoding, CSP, валидация.</p>
+          <p><strong>История:</strong> червь Samy на MySpace (2005) заразил 1 млн профилей за сутки. Автор оштрафован на $15 000.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-csrf">
+        <div class="card">
+          <span class="badge badge-med">Средний риск</span>
+          <h4>CSRF</h4>
+          <p>Браузер жертвы автоматически прикрепляет cookies. Скрытая форма на стороннем сайте выполняет действие от имени жертвы.</p>
+          <p><strong>Защита:</strong> CSRF-токены, SameSite cookies, проверка Origin/Referer.</p>
+          <p><strong>История:</strong> в 2007 году CSRF в Gmail позволил захватить домен жертвы.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TARGETS ===== -->
+    <section id="targets">
+      <h2>Учебные полигоны</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h4>🧃 OWASP Juice Shop</h4>
+          <p>Современное SPA на Node/Angular. Все категории OWASP Top 10.</p>
+          <p><a href="https://owasp.org/www-project-juice-shop/" target="_blank" rel="noopener">Официальная страница</a> · <a href="https://demo.owasp-juice.shop" target="_blank" rel="noopener">Демо</a></p>
+        </div>
+        <div class="card">
+          <h4>💀 DVWA</h4>
+          <p>Классическое PHP/MySQL-приложение. SQLi, XSS, CSRF, command injection.</p>
+          <p><a href="https://github.com/digininja/DVWA" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.dvwa.co.uk/" target="_blank" rel="noopener">Сайт</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HISTORY ===== -->
+    <section id="history">
+      <h2>Исторические кейсы</h2>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>1998: первая публичная дискуссия о SQLi</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Статья Джеффа Форристала в Phrack под псевдонимом rain.forest.puppy положила начало публичному обсуждению SQL-инъекций.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2005: червь Samy на MySpace</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Stored XSS-червь заразил миллион профилей за сутки. Автор — Сэми Камкар — оштрафован на $15 000.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2007–2009: кража 130 млн карт через SQLi</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Альберт Гонсалес и сообщники атаковали Heartland, 7-Eleven, Hannaford. Приговор — 20 лет тюрьмы.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2023: SQLi-кампания против MOVEit</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Классическая SQL-инъекция привела к утечкам в тысячах организаций. Инъекции остаются актуальными.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== LEGAL ===== -->
+    <section id="legal">
+      <h2>Этика и закон</h2>
+      <div class="alert alert-danger">
+        <strong>Только с разрешения.</strong> Тестирование чужих систем без письменного согласия — уголовное преступление.
+      </div>
+      <p>Используйте только учебные полигоны (Juice Shop, DVWA, Testfire) или собственные системы.</p>
+    </section>
+
+    <!-- ===== PRACTICE ===== -->
+    <section id="practice">
+      <h2>🎯 Практика</h2>
+      <p class="lead">Выполните задания по порядку. Отмечайте галочками — прогресс сохраняется автоматически.</p>
+
+      <div class="practice-box">
+        <h3>Задания модуля 1</h3>
+        <ul class="task-list">
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m1-install" id="m1-install">
+            <label for="m1-install">
+              <strong>1. Установите ZAP</strong>
+              <small>Скачайте с zaproxy.org или через пакетный менеджер. Запустите — при первом старте выберите «No» для сессии.</small>
+            </label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m1-proxy" id="m1-proxy">
+            <label for="m1-proxy">
+              <strong>2. Настройте прокси</strong>
+              <small>Настройте браузер на 127.0.0.1:8080, импортируйте сертификат ZAP. Проверьте: History заполняется.</small>
+            </label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m1-intercept" id="m1-intercept">
+            <label for="m1-intercept">
+              <strong>3. Перехватите запрос</strong>
+              <small>Включите Intercept, отправьте форму на Testfire (https://demo.testfire.net), измените параметр и отпустите запрос.</small>
+            </label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m1-sqli" id="m1-sqli">
+            <label for="m1-sqli">
+              <strong>4. Попробуйте SQLi</strong>
+              <small>На странице логина Testfire введите <code>jsmith</code> / <code>' OR '1'='1</code>. Посмотрите на ответ сервера.</small>
+            </label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m1-scan" id="m1-scan">
+            <label for="m1-scan">
+              <strong>5. Запустите Spider + Active Scan</strong>
+              <small>На Testfire выполните Spider (с пользователем jsmith) и затем Active Scan. Изучите вкладку «Alerts».</small>
+            </label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m1-review" id="m1-review">
+            <label for="m1-review">
+              <strong>6. Разберите находки</strong>
+              <small>Выпишите 2–3 уязвимости из Alerts: тип, уровень риска, затронутый URL, метод защиты.</small>
+            </label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="alert alert-info">
+        <strong>Критерий успеха:</strong> вы понимаете, как ZAP перехватывает трафик, и можете воспроизвести SQLi на учебном полигоне.
+      </div>
+    </section>
+
+    <!-- ===== LINKS ===== -->
+    <section id="links">
+      <h2>Полезные ссылки</h2>
+      <ul class="link-list">
+        <li><a href="https://www.zaproxy.org/docs/desktop/start/" target="_blank" rel="noopener">ZAP — Getting Started</a></li>
+        <li><a href="https://owasp.org/www-project-juice-shop/" target="_blank" rel="noopener">OWASP Juice Shop</a></li>
+        <li><a href="https://github.com/digininja/DVWA" target="_blank" rel="noopener">DVWA на GitHub</a></li>
+        <li><a href="https://owasp.org/Top10/" target="_blank" rel="noopener">OWASP Top 10</a></li>
+      </ul>
+    </section>
+
+    <div class="module-nav">
+      <a href="index.html" class="prev">
+        <span class="nav-label">← Назад</span>
+        <span class="nav-title">Главная</span>
+      </a>
+      <a href="module-2.html" class="next">
+        <span class="nav-label">Далее →</span>
+        <span class="nav-title">Модуль 2: Продвинутый уровень</span>
+      </a>
+    </div>
+
+    <div class="footer">Модуль 1 · Основы ZAP · Только для легального обучения</div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

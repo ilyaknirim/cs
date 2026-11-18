@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 2 — Продвинутый уровень | ZAP Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand">
+    <span class="brand-mark">Z</span>
+    ZAP<span>Portal</span>
+  </a>
+  <nav class="topnav">
+    <a href="index.html">Главная</a>
+    <a href="module-1.html">Модуль 1</a>
+    <a href="module-2.html" class="active">Модуль 2</a>
+    <a href="module-3.html">Модуль 3</a>
+  </nav>
+  <div class="theme-switcher">
+    <button class="theme-btn" title="Сменить тему">🎨</button>
+    <div class="theme-menu"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Модуль 2</div>
+    <a href="#fuzzer" class="active">Fuzzer</a>
+    <a href="#scripts">Скрипты</a>
+    <a href="#auth">Аутентификация</a>
+    <a href="#ajax">AJAX Spider</a>
+    <a href="#top10">OWASP Top 10 2025</a>
+    <a href="#access">Access Control · SSRF</a>
+    <a href="#deser">Десериализация</a>
+    <a href="#juice">Juice Shop</a>
+    <a href="#dvwa">DVWA</a>
+    <a href="#cicd">CI/CD</a>
+    <a href="#history">История</a>
+    <a href="#practice">🎯 Практика</a>
+    <a href="#links">Ссылки</a>
+  </aside>
+
+  <main class="main" data-module-id="m2">
+
+    <h1>Модуль 2 — Продвинутый уровень</h1>
+    <p class="lead">Fuzzer, скрипты, аутентифицированное сканирование, современные уязвимости и автоматизация.</p>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Прогресс модуля</span>
+        <span class="module-progress-label">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill module-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <section id="fuzzer">
+      <h2>Fuzzer: перебор полезных нагрузок</h2>
+      <p>Fuzzer автоматически отправляет множество вариантов запроса с разными значениями параметра. Правый клик по запросу → <code>Attack → Fuzz…</code>, выберите параметр и payload'ы (SQLi, XSS, directory traversal).</p>
+      <div class="alert alert-warn">Фаззинг генерирует много трафика. Не применяйте к production без разрешения.</div>
+    </section>
+
+    <section id="scripts">
+      <h2>Скрипты и расширения</h2>
+      <p>ZAP поддерживает JavaScript (GraalVM), Zest, Python (Jython), Groovy, Kotlin, Ruby.</p>
+      <div class="grid-2">
+        <div class="card"><h4>HTTP Sender</h4><p>Выполняется для каждого запроса/ответа. Идеален для добавления заголовков и логирования.</p></div>
+        <div class="card"><h4>Active Rules</h4><p>Собственные правила Active Scan под специфику вашего приложения.</p></div>
+      </div>
+    </section>
+
+    <section id="auth">
+      <h2>Аутентификация и сессии</h2>
+      <div class="flex-row"><span class="step-num">1</span><div><strong>Контекст.</strong> Определяет границы приложения и исключения (например, logout).</div></div>
+      <div class="flex-row"><span class="step-num">2</span><div><strong>Метод.</strong> Form-based, JSON, HTTP/NTLM, Script, Browser-based.</div></div>
+      <div class="flex-row"><span class="step-num">3</span><div><strong>Индикаторы.</strong> Regex или текст, по которому ZAP понимает «вошёл/вышел».</div></div>
+      <div class="alert alert-info">Аутентифицированные сканы находят в 3–5 раз больше проблем, чем анонимные.</div>
+    </section>
+
+    <section id="ajax">
+      <h2>AJAX Spider и HUD</h2>
+      <p>AJAX Spider запускает реальный браузер — обходит SPA на React/Angular/Vue. HUD встраивает элементы управления ZAP прямо в браузер.</p>
+    </section>
+
+    <section id="top10">
+      <h2>OWASP Top 10: 2025</h2>
+      <div class="card">
+        <ul class="bullets">
+          <li><strong>A01 Broken Access Control</strong> — расширен, поглотил SSRF.</li>
+          <li><strong>A02 Security Misconfiguration</strong> — поднялся с 5-го на 2-е место.</li>
+          <li><strong>A03 Supply Chain Failures</strong> — новая категория.</li>
+          <li><strong>A10 Exceptional Conditions</strong> — новая категория об обработке ошибок.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="access">
+      <h2>Broken Access Control и SSRF</h2>
+      <div class="card">
+        <h4>IDOR</h4>
+        <p><code>/api/user/123/profile</code> → измените <code>123</code> на <code>124</code>. Если видите чужой профиль — уязвимость.</p>
+      </div>
+      <div class="card">
+        <h4>SSRF</h4>
+        <p>Приложение принимает URL и делает запрос от имени сервера. Пример: <code>http://169.254.169.254/</code> в облаке.</p>
+        <p><strong>Защита:</strong> allowlist доменов/IP, запрет редиректов.</p>
+      </div>
+    </section>
+
+    <section id="deser">
+      <h2>Небезопасная десериализация</h2>
+      <p>Приложение десериализует данные от пользователя без проверки → внедрение вредоносного объекта. Относится к <strong>A08: Software and Data Integrity Failures</strong>.</p>
+      <div class="alert alert-warn">Пример: Java-приложение принимает сериализованный объект в cookie. Инструмент <code>ysoserial</code> создаёт payload, выполняющий команду на сервере.</div>
+    </section>
+
+    <section id="juice">
+      <h2>Практика на Juice Shop</h2>
+      <div class="grid-2">
+        <div class="card"><h4>SQLi-вход</h4><p>Email: <code>' OR 1=1--</code>. Войдите как администратор.</p></div>
+        <div class="card"><h4>DOM XSS</h4><p>Поиск: <code>&lt;iframe src="javascript:alert('XSS')"&gt;</code>.</p></div>
+        <div class="card"><h4>IDOR в отзыве</h4><p>Перехватите <code>UserId</code>, измените на чужой.</p></div>
+        <div class="card"><h4>Scoreboard</h4><p>Найдите скрытую страницу <code>score-board</code> через AJAX Spider или бандлы.</p></div>
+      </div>
+    </section>
+
+    <section id="dvwa">
+      <h2>Практика на DVWA</h2>
+      <div class="grid-2">
+        <div class="card"><h4>Command Injection</h4><p><code>127.0.0.1; whoami</code></p></div>
+        <div class="card"><h4>LFI</h4><p><code>../../../../etc/passwd</code></p></div>
+        <div class="card"><h4>CSRF</h4><p>Смена пароля без токена.</p></div>
+      </div>
+    </section>
+
+    <section id="cicd">
+      <h2>CI/CD</h2>
+      <div class="card">
+        <h4>Baseline Scan</h4>
+        <pre><code>docker run --rm -v $(pwd)/zap:/zap/wrk/:rw \
+  ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+  -t https://staging.example.com -r baseline.html</code></pre>
+      </div>
+      <div class="card">
+        <h4>GitHub Actions</h4>
+        <pre><code>uses: zaproxy/action-baseline@v0.12.0
+with:
+  target: 'https://staging.example.com'
+  fail_action: true</code></pre>
+      </div>
+    </section>
+
+    <section id="history">
+      <h2>Исторические кейсы</h2>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2017: Equifax и Apache Struts</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Не обновили Struts — украли данные 147 млн человек. Штрафы >$1.7 млрд.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2020: SolarWinds</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Бэкдор в подписанном обновлении Orion. Тысячи организаций скомпрометированы.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2021: Log4Shell</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>RCE в Log4j через специально сформированную строку в логах. Миллионы серверов.</p></div>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>🎯 Практика</h2>
+      <div class="practice-box">
+        <h3>Задания модуля 2</h3>
+        <ul class="task-list">
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m2-fuzzer" id="m2-fuzzer">
+            <label for="m2-fuzzer"><strong>1. Fuzzer</strong><small>Запустите Fuzzer на параметре поиска в Juice Shop с payload'ами XSS. Найдите отражение.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m2-script" id="m2-script">
+            <label for="m2-script"><strong>2. Скрипт</strong><small>Напишите HTTP Sender на JS, добавляющий заголовок <code>X-Test: 1</code> ко всем запросам.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m2-auth" id="m2-auth">
+            <label for="m2-auth"><strong>3. Аутентификация</strong><small>Настройте Form-based auth на Testfire (jsmith / demo1234). Запустите сканирование с пользователем.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m2-ajax" id="m2-ajax">
+            <label for="m2-ajax"><strong>4. AJAX Spider</strong><small>Запустите AJAX Spider на Juice Shop. Сравните количество найденных URL с обычным Spider.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m2-juice" id="m2-juice">
+            <label for="m2-juice"><strong>5. Juice Shop: 3 челленджа</strong><small>Решите SQLi-вход, DOM XSS в поиске и IDOR в отзыве.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m2-dvwa" id="m2-dvwa">
+            <label for="m2-dvwa"><strong>6. DVWA: 2 челленджа</strong><small>Command Injection и LFI на уровне Low.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m2-ci" id="m2-ci">
+            <label for="m2-ci"><strong>7. CI/CD</strong><small>Создайте GitHub Actions с ZAP baseline scan для своего репозитория.</small></label>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="links">
+      <h2>Полезные ссылки</h2>
+      <ul class="link-list">
+        <li><a href="https://www.zaproxy.org/docs/" target="_blank" rel="noopener">ZAP — документация</a></li>
+        <li><a href="https://owasp.org/Top10/" target="_blank" rel="noopener">OWASP Top 10</a></li>
+        <li><a href="https://pwning.owasp-juice.shop" target="_blank" rel="noopener">«Pwning OWASP Juice Shop»</a></li>
+        <li><a href="https://cheatsheetseries.owasp.org/" target="_blank" rel="noopener">OWASP Cheat Sheet Series</a></li>
+      </ul>
+    </section>
+
+    <div class="module-nav">
+      <a href="module-1.html" class="prev">
+        <span class="nav-label">← Назад</span>
+        <span class="nav-title">Модуль 1: Основы</span>
+      </a>
+      <a href="module-3.html" class="next">
+        <span class="nav-label">Далее →</span>
+        <span class="nav-title">Модуль 3: Безопасность сервера</span>
+      </a>
+    </div>
+
+    <div class="footer">Модуль 2 · Продвинутый уровень · Только для легального обучения</div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

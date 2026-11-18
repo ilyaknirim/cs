@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZAP Portal — образовательный курс по этичному хакингу</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand">
+    <span class="brand-mark">Z</span>
+    ZAP<span>Portal</span>
+  </a>
+  <nav class="topnav">
+    <a href="index.html" class="active">Главная</a>
+    <a href="module-1.html">Модуль 1</a>
+    <a href="module-2.html">Модуль 2</a>
+    <a href="module-3.html">Модуль 3</a>
+  </nav>
+  <div class="theme-switcher">
+    <button class="theme-btn" title="Сменить тему">🎨</button>
+    <div class="theme-menu"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Навигация</div>
+    <a href="#hero" class="active">Обзор</a>
+    <a href="#modules">Модули курса</a>
+    <a href="#progress">Ваш прогресс</a>
+    <a href="#howto">Как учиться</a>
+    <a href="#ethics">Этика</a>
+  </aside>
+
+  <main class="main">
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="hero">
+        <h1>Портал по этичному хакингу с OWASP ZAP</h1>
+        <p>Три модуля, которые проведут вас от базовой настройки перехватывающего прокси до комплексного аудита безопасности сервера и веб-приложений. Каждый модуль содержит практику с интерактивными чек-листами и прогрессом.</p>
+        <div class="hero-actions">
+          <a href="module-1.html" class="btn btn-primary">Начать с Модуля 1 →</a>
+          <a href="#modules" class="btn">Все модули</a>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num">3</div>
+          <div class="stat-label">Модуля</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">30+</div>
+          <div class="stat-label">Тем</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">19</div>
+          <div class="stat-label">Практических заданий</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">4</div>
+          <div class="stat-label">Темы оформления</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULES -->
+    <section id="modules">
+      <h2>Модули курса</h2>
+      <p class="lead">Курс построен по принципу «от простого к сложному». Проходите модули по порядку или выберите нужную тему.</p>
+
+      <div class="grid-3">
+
+        <div class="module-card" data-module-card="m1">
+          <span class="badge badge-info">Модуль 1</span>
+          <h3>Основы ZAP</h3>
+          <p>Установка, настройка прокси, перехват запросов, SQLi, XSS, CSRF. Учебные полигоны и исторические кейсы.</p>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span>Прогресс</span>
+              <span>0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+          </div>
+          <div class="module-actions">
+            <a href="module-1.html" class="btn btn-primary">Открыть →</a>
+          </div>
+        </div>
+
+        <div class="module-card" data-module-card="m2">
+          <span class="badge badge-info">Модуль 2</span>
+          <h3>Продвинутый уровень</h3>
+          <p>Fuzzer, скрипты, аутентификация, AJAX Spider, OWASP Top 10 2025, Juice Shop и DVWA, CI/CD.</p>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span>Прогресс</span>
+              <span>0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+          </div>
+          <div class="module-actions">
+            <a href="module-2.html" class="btn btn-primary">Открыть →</a>
+          </div>
+        </div>
+
+        <div class="module-card" data-module-card="m3">
+          <span class="badge badge-info">Модуль 3</span>
+          <h3>Безопасность сервера</h3>
+          <p>Nmap, Lynis, OpenVAS, Nuclei, Trivy, DefectDojo, WSTG, полный цикл аудита и чек-листы.</p>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span>Прогресс</span>
+              <span>0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+          </div>
+          <div class="module-actions">
+            <a href="module-3.html" class="btn btn-primary">Открыть →</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section id="progress">
+      <h2>Ваш общий прогресс</h2>
+      <div class="card">
+        <div class="progress-wrap" style="margin:0">
+          <div class="progress-label">
+            <span>Пройдено заданий курса</span>
+            <span class="overall-progress-label">0%</span>
+          </div>
+          <div class="progress-bar" style="height:14px">
+            <div class="progress-fill overall-progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <p style="margin-top:14px;font-size:.9rem;color:var(--muted)">
+          Прогресс сохраняется в браузере (localStorage) и учитывается на всех страницах.
+          Отмечайте выполненные задания в разделе «Практика» каждого модуля.
+        </p>
+      </div>
+    </section>
+
+    <!-- HOWTO -->
+    <section id="howto">
+      <h2>Как учиться</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h4>1. Читайте теорию</h4>
+          <p>Каждая тема разбита на короткие блоки с примерами и пояснениями. Используйте боковую навигацию для перехода между разделами.</p>
+        </div>
+        <div class="card">
+          <h4>2. Выполняйте практику</h4>
+          <p>В конце каждого модуля — блок «Практика» с интерактивным чек-листом. Отмечайте выполненные задания — прогресс сохранится.</p>
+        </div>
+        <div class="card">
+          <h4>3. Меняйте тему</h4>
+          <p>Кнопка 🎨 в правом верхнем углу переключает 4 темы оформления: светлая, тёмная, «Океан» и «Закат». Выбор сохраняется.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETHICS -->
+    <section id="ethics">
+      <h2>Этика и закон</h2>
+      <div class="alert alert-danger">
+        <strong>Главное правило:</strong> все техники из курса применяйте только к собственным системам или к системам, на которые у вас есть письменное разрешение. Несанкционированное сканирование и тестирование — уголовное преступление в большинстве юрисдикций.
+      </div>
+      <p>Курс создан для обучения на легальных полигонах: OWASP Juice Shop, DVWA, Testfire, а также на собственных виртуальных машинах и серверах.</p>
+    </section>
+
+    <div class="footer">
+      ZAP Portal · Образовательный курс · Только для легального обучения
+    </div>
+
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

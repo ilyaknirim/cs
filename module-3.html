@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 3 — Безопасность сервера | ZAP Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand">
+    <span class="brand-mark">Z</span>
+    ZAP<span>Portal</span>
+  </a>
+  <nav class="topnav">
+    <a href="index.html">Главная</a>
+    <a href="module-1.html">Модуль 1</a>
+    <a href="module-2.html">Модуль 2</a>
+    <a href="module-3.html" class="active">Модуль 3</a>
+  </nav>
+  <div class="theme-switcher">
+    <button class="theme-btn" title="Сменить тему">🎨</button>
+    <div class="theme-menu"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Модуль 3</div>
+    <a href="#nmap" class="active">Nmap</a>
+    <a href="#lynis">Lynis</a>
+    <a href="#openvas">OpenVAS</a>
+    <a href="#nuclei">Nuclei</a>
+    <a href="#trivy">Trivy</a>
+    <a href="#defectdojo">DefectDojo</a>
+    <a href="#wstg">WSTG и чек-лист</a>
+    <a href="#workflow">Полный цикл</a>
+    <a href="#history">История</a>
+    <a href="#practice">🎯 Практика</a>
+    <a href="#prototype">Прототип модуля 4</a>
+    <a href="#links">Ссылки</a>
+  </aside>
+
+  <main class="main" data-module-id="m3">
+
+    <h1>Модуль 3 — Безопасность сервера</h1>
+    <p class="lead">От портов и ОС до контейнеров и отчётности: комплексный аудит сервера и веб-сервера.</p>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Прогресс модуля</span>
+        <span class="module-progress-label">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill module-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <section id="nmap">
+      <h2>Nmap: порты и сервисы</h2>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-nmap1">Типы</button>
+        <button class="tab-btn" data-tab="tab-nmap2">NSE</button>
+      </div>
+      <div class="tab-panel active" id="tab-nmap1">
+        <div class="card"><h4>SYN (<code>-sS</code>)</h4><pre><code>sudo nmap -sS 192.168.1.10</code></pre></div>
+        <div class="card"><h4>UDP (<code>-sU</code>)</h4><pre><code>sudo nmap -sU --top-ports 200 192.168.1.10</code></pre></div>
+        <div class="card"><h4>Aggressive (<code>-A</code>)</h4><pre><code>sudo nmap -A 192.168.1.10</code></pre></div>
+        <div class="card"><h4>Все порты (<code>-p-</code>)</h4><pre><code>sudo nmap -sS -p- 192.168.1.10</code></pre></div>
+      </div>
+      <div class="tab-panel" id="tab-nmap2">
+        <div class="card">
+          <h4>NSE: проверка EternalBlue</h4>
+          <pre><code>nmap -p 445 --script smb-vuln-ms17-010 192.168.1.10</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="lynis">
+      <h2>Lynis: аудит ОС</h2>
+      <div class="flex-row"><span class="step-num">1</span><div>Установите Lynis из репозитория CISOFY.</div></div>
+      <div class="flex-row"><span class="step-num">2</span><div><code>sudo lynis audit system</code> — только чтение, безопасно.</div></div>
+      <div class="flex-row"><span class="step-num">3</span><div>Разберите: <code>[OK]</code>, <code>[WARNING]</code>, <code>[SUGGESTION]</code>.</div></div>
+      <div class="flex-row"><span class="step-num">4</span><div>Логи: <code>/var/log/lynis.log</code> и <code>/var/log/lynis-report.dat</code>.</div></div>
+      <div class="alert alert-info">Lynis выдаёт Hardening Index от 0 до 100 — отличный индикатор для отслеживания улучшений.</div>
+    </section>
+
+    <section id="openvas">
+      <h2>OpenVAS (Greenbone)</h2>
+      <div class="card">
+        <h4>Docker-развёртывание</h4>
+        <pre><code>mkdir -p ~/greenbone && cd ~/greenbone
+curl -O -L https://greenbone.github.io/docs/latest/_static/docker-compose.yml
+docker compose pull && docker compose up -d</code></pre>
+        <p>Веб-интерфейс: HTTPS. Логин <code>admin / admin</code>.</p>
+      </div>
+      <div class="card">
+        <h4>Рабочий процесс</h4>
+        <p>Credentials → Targets → Scan Configs → запуск → отчёт с CVE.</p>
+      </div>
+      <div class="alert alert-warn">Требуется минимум 4 ГБ RAM (рекомендуется 8 ГБ).</div>
+    </section>
+
+    <section id="nuclei">
+      <h2>Nuclei: шаблонные проверки</h2>
+      <pre><code>go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+nuclei -target https://example.com -severity critical,high</code></pre>
+      <p>Встраивается в CI одной командой. Тысячи шаблонов от сообщества.</p>
+    </section>
+
+    <section id="trivy">
+      <h2>Trivy: контейнеры</h2>
+      <pre><code>brew install aquasecurity/trivy/trivy
+trivy image --severity HIGH,CRITICAL nginx:1.25
+trivy image --exit-code 1 --severity CRITICAL myapp:latest</code></pre>
+      <p>Сканирует CVE в пакетах ОС, зависимостях, секреты и IaC-мисконфигурации.</p>
+    </section>
+
+    <section id="defectdojo">
+      <h2>DefectDojo: управление находками</h2>
+      <p>Импорт XML-отчётов ZAP, OpenVAS, Nuclei, Trivy. Дедупликация по CWE, автоматическое закрытие исправленного, SLA и владельцы.</p>
+      <pre><code>docker run -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable \
+  zap-baseline.py -t https://staging.example.com -x zap.xml</code></pre>
+    </section>
+
+    <section id="wstg">
+      <h2>OWASP WSTG и чек-лист веб-сервера</h2>
+      <p>WSTG-CONF-01 (Network Infrastructure Configuration) — методологическая основа.</p>
+      <ul class="bullets">
+        <li>Проверить версии веб-сервера на CVE.</li>
+        <li>Удалить дефолтные страницы и примеры.</li>
+        <li>Отключить debug-режим и подробные ошибки.</li>
+        <li>Запретить листинг директорий.</li>
+        <li>Заголовки: CSP, HSTS, X-Content-Type-Options, X-Frame-Options.</li>
+        <li>Проверить TLS (SSL Labs, testssl.sh).</li>
+        <li>Админ-панели недоступны извне.</li>
+        <li>Сервер работает с минимальными привилегиями.</li>
+        <li>Логирование и мониторинг включены.</li>
+        <li>Контейнеры просканированы Trivy — нет CRITICAL.</li>
+      </ul>
+    </section>
+
+    <section id="workflow">
+      <h2>Полный цикл аудита</h2>
+      <div class="flex-row"><span class="step-num">1</span><div>Nmap: инвентаризация хостов и портов.</div></div>
+      <div class="flex-row"><span class="step-num">2</span><div>Lynis: аудит ОС.</div></div>
+      <div class="flex-row"><span class="step-num">3</span><div>OpenVAS + Nuclei: поиск CVE.</div></div>
+      <div class="flex-row"><span class="step-num">4</span><div>ZAP: baseline + full scan веб-приложения.</div></div>
+      <div class="flex-row"><span class="step-num">5</span><div>Trivy: образы и файловые системы.</div></div>
+      <div class="flex-row"><span class="step-num">6</span><div>DefectDojo: централизация, дедупликация, SLA.</div></div>
+      <div class="flex-row"><span class="step-num">7</span><div>Исправление и повторный скан.</div></div>
+    </section>
+
+    <section id="history">
+      <h2>Исторические кейсы</h2>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2017: Equifax и Apache Struts</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Не обновили серверное ПО — 147 млн пострадавших.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2021: Log4Shell</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>Миллионы серверов уязвимы. Инвентаризация зависимостей критична.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header"><span>2023: MOVEit Transfer</span><span class="arrow">▶</span></button>
+        <div class="accordion-body"><p>SQLi в серверном ПО для передачи файлов. Тысячи организаций.</p></div>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>🎯 Практика</h2>
+      <div class="practice-box">
+        <h3>Задания модуля 3</h3>
+        <ul class="task-list">
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m3-nmap" id="m3-nmap">
+            <label for="m3-nmap"><strong>1. Nmap</strong><small>Просканируйте собственную виртуальную машину: <code>nmap -sS -sV -A</code>. Сохраните XML-отчёт.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m3-lynis" id="m3-lynis">
+            <label for="m3-lynis"><strong>2. Lynis</strong><small>Запустите <code>sudo lynis audit system</code> на собственной VM. Выпишите Hardening Index и 3 WARNING.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m3-openvas" id="m3-openvas">
+            <label for="m3-openvas"><strong>3. OpenVAS</strong><small>Разверните Greenbone в Docker, создайте цель и запустите «Full and fast».</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m3-nuclei" id="m3-nuclei">
+            <label for="m3-nuclei"><strong>4. Nuclei</strong><small>Просканируйте свой локальный стенд: <code>nuclei -target http://localhost -severity critical,high</code>.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m3-trivy" id="m3-trivy">
+            <label for="m3-trivy"><strong>5. Trivy</strong><small>Просканируйте образ <code>nginx:1.25</code>. Сравните число CVE с <code>nginx:latest</code>.</small></label>
+          </li>
+          <li class="task-item">
+            <input type="checkbox" data-task-id="m3-report" id="m3-report">
+            <label for="m3-report"><strong>6. Отчёт</strong><small>Соберите находки всех сканов в единую таблицу: инструмент, уязвимость, severity, рекомендация.</small></label>
+          </li>
+        </ul>
+      </div>
+      <div class="alert alert-info"><strong>Критерий успеха:</strong> вы можете провести полный аудит собственного сервера и оформить отчёт.</div>
+    </section>
+
+    <section id="prototype">
+      <h2>Прототип модуля 4</h2>
+      <div class="practice-box">
+        <h3>🔮 Заготовки для следующих занятий</h3>
+        <ul class="bullets">
+          <li>Активное тестирование API (Postman + ZAP API Scan, BOLA).</li>
+          <li>Расширенный Nmap: firewall evasion, timing, кастомные NSE.</li>
+          <li>SIEM: интеграция логов в ELK/Grafana, алерты.</li>
+          <li>IaC: Checkov, tfsec, сканирование Kubernetes-манифестов.</li>
+          <li>Постэксплуатация в легальной лаборатории.</li>
+          <li>Отчётность и приоритизация рисков для менеджмента.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="links">
+      <h2>Полезные ссылки</h2>
+      <ul class="link-list">
+        <li><a href="https://nmap.org/book/" target="_blank" rel="noopener">Nmap Network Scanning</a></li>
+        <li><a href="https://cisofy.com/lynis/" target="_blank" rel="noopener">Lynis</a></li>
+        <li><a href="https://greenbone.github.io/docs/latest/" target="_blank" rel="noopener">Greenbone Community Edition</a></li>
+        <li><a href="https://docs.projectdiscovery.io/tools/nuclei/running" target="_blank" rel="noopener">Nuclei</a></li>
+        <li><a href="https://aquasecurity.github.io/trivy/" target="_blank" rel="noopener">Trivy</a></li>
+        <li><a href="https://docs.defectdojo.com/" target="_blank" rel="noopener">DefectDojo</a></li>
+        <li><a href="https://wstg.owasp.org/" target="_blank" rel="noopener">OWASP WSTG</a></li>
+      </ul>
+    </section>
+
+    <div class="module-nav">
+      <a href="module-2.html" class="prev">
+        <span class="nav-label">← Назад</span>
+        <span class="nav-title">Модуль 2: Продвинутый уровень</span>
+      </a>
+      <a href="index.html" class="next">
+        <span class="nav-label">Далее →</span>
+        <span class="nav-title">На главную</span>
+      </a>
+    </div>
+
+    <div class="footer">Модуль 3 · Безопасность сервера · Только для легального обучения</div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
